@@ -1,6 +1,6 @@
-## Spotter-Runner
+## Vanguard-Runner
 
-> 基于 HttpRunner 的自动化测试平台，采用 Master-Worker 分布式架构，支持大规模并发测试任务执行。
+> 采用 Master-Worker 分布式架构，支持大规模并发测试任务执行。
 
 ### 🎯 当前核心特性
 
@@ -17,8 +17,7 @@
 > 列出运行该项目所必须的条件和相关依赖  
 > 安装依赖 pip install -r requirements.txt
 > 导出依赖 pipreqs ./ --encoding=utf8 --force
-* python 3.8
-* httprunner v4.3
+* python 3.12
 * fastapi
 * mysql
 
