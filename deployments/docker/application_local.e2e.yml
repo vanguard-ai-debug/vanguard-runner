@@ -1,0 +1,9 @@
+callback:
+  workflow:
+    url: ""
+    timeout: 5
+    retry_count: 1
+    retry_delay: 1
+    headers: {}
+    use_kafka_result: false
+    result_topic: workflow-run-result

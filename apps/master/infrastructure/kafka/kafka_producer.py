@@ -1,0 +1,1 @@
+from packages.shared.infrastructure.kafka_producer import TaskProducer, close_kafka_producer, get_kafka_producer

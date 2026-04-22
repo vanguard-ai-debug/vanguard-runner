@@ -1,0 +1,103 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: vanguard-runner-master
+  namespace: default
+  labels:
+    app: vanguard-runner
+    component: master
+spec:
+  replicas: 2  # Master 可以部署多个实例（API 无状态）
+  selector:
+    matchLabels:
+      app: vanguard-runner
+      component: master
+  template:
+    metadata:
+      labels:
+        app: vanguard-runner
+        component: master
+    spec:
+      containers:
+      - name: master
+        image: registry.cn-hangzhou.aliyuncs.com/spotter/runner:latest
+        imagePullPolicy: Always
+        ports:
+        - containerPort: 8100
+          name: http
+          protocol: TCP
+        env:
+        # 数据库配置
+        - name: DB_HOST
+          value: "mysql-tst.spotter.ink"
+        - name: DB_PORT
+          value: "31070"
+        - name: DB_USER
+          value: "root"
+        - name: DB_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: vanguard-runner-secrets
+              key: db-password
+        - name: DB_NAME
+          value: "spotter_runner"
+        
+        # Redis 配置
+        - name: REDIS_HOST
+          value: "redis-service"
+        - name: REDIS_PORT
+          value: "6379"
+        - name: REDIS_DB
+          value: "0"
+        - name: REDIS_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: vanguard-runner-secrets
+              key: redis-password
+              optional: true
+        
+        # Kafka 配置
+        - name: KAFKA_BOOTSTRAP_SERVERS
+          value: "kafka-service:9092"
+        
+        # 应用配置
+        - name: ENVIRONMENT
+          value: "production"
+        - name: LOG_LEVEL
+          value: "INFO"
+        
+        resources:
+          requests:
+            memory: "512Mi"
+            cpu: "500m"
+          limits:
+            memory: "2Gi"
+            cpu: "2000m"
+        
+        livenessProbe:
+          httpGet:
+            path: /health
+            port: 8100
+          initialDelaySeconds: 30
+          periodSeconds: 10
+          timeoutSeconds: 5
+          failureThreshold: 3
+        
+        readinessProbe:
+          httpGet:
+            path: /health
+            port: 8100
+          initialDelaySeconds: 10
+          periodSeconds: 5
+          timeoutSeconds: 3
+          failureThreshold: 3
+        
+        volumeMounts:
+        - name: logs
+          mountPath: /app/logs
+      
+      volumes:
+      - name: logs
+        emptyDir: {}
+      
+      restartPolicy: Always

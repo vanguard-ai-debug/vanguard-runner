@@ -1,0 +1,39 @@
+# 请勿将真实密钥提交到仓库。本地/测试可在同目录复制为 application_local.yml 并加入 .gitignore。
+server:
+  port: 8080
+
+database:
+  datasource:
+    host: mysql.tst.spotter.ink
+    name: spotter_runner
+    username: root
+    password: root
+    port: 31070
+
+oss2:
+  endpoint: ""
+  bucketName: ""
+  accessKey: ""
+  secretKey: ""
+
+cos:
+  secretId: ""
+  secretKey: ""
+  region: ""
+  cosBucketName: ""
+
+callback:
+  workflow:
+    url: "http://aegis.tst.spotter.ink/workflow/run/result/callback"
+    timeout: 30
+    retry_count: 3
+    retry_delay: 1
+    headers: {}
+
+workflow:
+  shard_storage:
+    enabled: true
+    threshold: 20
+    output_threshold: 51200
+    body_truncate_threshold: 10240
+    expire_time: 3600

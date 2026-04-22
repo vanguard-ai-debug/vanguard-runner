@@ -1,0 +1,104 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: vanguard-runner-worker
+  namespace: default
+  labels:
+    app: vanguard-runner
+    component: worker
+spec:
+  replicas: 5  # 可以根据负载调整 Worker 数量
+  selector:
+    matchLabels:
+      app: vanguard-runner
+      component: worker
+  template:
+    metadata:
+      labels:
+        app: vanguard-runner
+        component: worker
+    spec:
+      containers:
+      - name: worker
+        image: registry.cn-hangzhou.aliyuncs.com/spotter/runner-worker:latest
+        imagePullPolicy: Always
+        env:
+        # 数据库配置（Worker 也需要访问数据库）
+        - name: DB_HOST
+          value: "mysql-tst.spotter.ink"
+        - name: DB_PORT
+          value: "31070"
+        - name: DB_USER
+          value: "root"
+        - name: DB_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: vanguard-runner-secrets
+              key: db-password
+        - name: DB_NAME
+          value: "spotter_runner"
+        
+        # Redis 配置
+        - name: REDIS_HOST
+          value: "redis-service"
+        - name: REDIS_PORT
+          value: "6379"
+        - name: REDIS_DB
+          value: "0"
+        - name: REDIS_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: vanguard-runner-secrets
+              key: redis-password
+              optional: true
+        
+        # Kafka 配置
+        - name: KAFKA_BOOTSTRAP_SERVERS
+          value: "kafka-service:9092"
+        - name: KAFKA_GROUP_ID
+          value: "worker-group"
+        
+        # Worker 配置
+        - name: WORKER_MAX_CONCURRENT
+          value: "10"  # 每个 Worker 的并发数
+        - name: ENVIRONMENT
+          value: "production"
+        - name: LOG_LEVEL
+          value: "INFO"
+        
+        resources:
+          requests:
+            memory: "1Gi"
+            cpu: "1000m"
+          limits:
+            memory: "4Gi"
+            cpu: "4000m"
+        
+        # Worker 健康检查（通过 HTTP 接口）
+        livenessProbe:
+          httpGet:
+            path: /health
+            port: 8080
+          initialDelaySeconds: 30
+          periodSeconds: 10
+          timeoutSeconds: 5
+          failureThreshold: 3
+        
+        readinessProbe:
+          httpGet:
+            path: /readyz
+            port: 8080
+          initialDelaySeconds: 10
+          periodSeconds: 5
+          timeoutSeconds: 3
+          failureThreshold: 3
+        
+        volumeMounts:
+        - name: logs
+          mountPath: /app/logs
+      
+      volumes:
+      - name: logs
+        emptyDir: {}
+      
+      restartPolicy: Always

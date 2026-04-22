@@ -1,0 +1,29 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: vanguard-runner-config
+  namespace: default
+data:
+  # 应用配置
+  environment: "production"
+  log_level: "INFO"
+  
+  # Kafka 配置
+  kafka_bootstrap_servers: "kafka-service:9092"
+  kafka_topics_urgent: "task-urgent"
+  kafka_topics_high: "task-high"
+  kafka_topics_normal: "task-normal"
+  
+  # Redis 配置
+  redis_host: "redis-service"
+  redis_port: "6379"
+  redis_db: "0"
+  
+  # Worker 配置
+  worker_concurrency: "5"
+  worker_heartbeat_interval: "5"
+  worker_timeout: "30"
+  
+  # 任务配置
+  task_timeout: "1800"  # 30 分钟
+  task_retry_times: "3"

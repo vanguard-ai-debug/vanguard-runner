@@ -1,0 +1,51 @@
+server:
+  port: 8080
+database:
+  datasource:
+    # 连接，注意各个配置，尤其是要一次性执行多条 SQL 时，要 allowMultiQueries=true
+    host: mysql.tst.spotter.ink
+    # 用户名 root
+    name: spotter_runner
+    username: root
+
+    # 密码 mysql
+    password: root
+    # 端口
+    port: 31070
+
+redis:
+  host: 127.0.0.1
+  port: 6379
+  db: 0
+
+kafka:
+  bootstrap_servers: 127.0.0.1:9092
+
+oss2:
+  endpoint: https://oss-cn-hangzhou.aliyuncs.com
+  bucketName: spotter-devops
+  accessKey: ${ALIYUN_ACCESS_KEY_ID:-your-access-key-id} # 访问key
+  secretKey: ${ALIYUN_ACCESS_KEY_SECRET:-your-access-key-secret} # 访问密钥
+
+
+cos:
+  secretId: ${TENCENT_SECRET_ID:-your-secret-id}
+  secretKey: ${TENCENT_SECRET_KEY:-your-secret-key}
+  region: ap-nanjing # 地域
+#  bucket: spotter-devops # 存储桶名称
+  cosBucketName: finance-test-1303367458
+
+# 回调配置
+callback:
+  workflow:
+    # 用例平台回调地址（执行完成后 POST 结果到此地址）
+#    url: "http://localhost:8081/api/workflow/callback"
+#    url: http://0.0.0.0:8200/workflow/run/result/callback
+    url: "http://aegis.tst.spotter.ink/workflow/run/result/callback"
+    # 超时时间（秒）
+    timeout: 30
+    # 重试次数
+    retry_count: 3
+    # 重试间隔（秒）
+    retry_delay: 1
+

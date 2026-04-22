@@ -1,0 +1,43 @@
+# Horizontal Pod Autoscaler - Worker 自动扩缩容
+apiVersion: autoscaling/v2
+kind: HorizontalPodAutoscaler
+metadata:
+  name: vanguard-runner-worker-hpa
+  namespace: default
+spec:
+  scaleTargetRef:
+    apiVersion: apps/v1
+    kind: Deployment
+    name: vanguard-runner-worker
+  minReplicas: 3  # 最少 3 个 Worker
+  maxReplicas: 20  # 最多 20 个 Worker
+  metrics:
+  - type: Resource
+    resource:
+      name: cpu
+      target:
+        type: Utilization
+        averageUtilization: 70  # CPU 使用率超过 70% 时扩容
+  - type: Resource
+    resource:
+      name: memory
+      target:
+        type: Utilization
+        averageUtilization: 80  # 内存使用率超过 80% 时扩容
+  behavior:
+    scaleDown:
+      stabilizationWindowSeconds: 300  # 缩容前等待 5 分钟
+      policies:
+      - type: Percent
+        value: 50  # 每次最多缩容 50%
+        periodSeconds: 60
+    scaleUp:
+      stabilizationWindowSeconds: 0  # 立即扩容
+      policies:
+      - type: Percent
+        value: 100  # 每次最多扩容 100%（翻倍）
+        periodSeconds: 60
+      - type: Pods
+        value: 5  # 或者每次增加 5 个 Pod
+        periodSeconds: 60
+      selectPolicy: Max  # 选择扩容幅度最大的策略

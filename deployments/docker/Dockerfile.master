@@ -1,0 +1,48 @@
+FROM registry.cn-hangzhou.aliyuncs.com/spotter/python:3.12
+
+WORKDIR /app
+
+# 1. 复制requirements文件和依赖管理脚本
+COPY requirements.txt ./
+COPY requirements-lock.txt* ./
+COPY deployments/scripts/dependency-diff.py ./
+COPY configs ./configs
+
+# 2. 安装依赖管理工具和基础依赖
+RUN pip config set global.index-url https://mirrors.aliyun.com/pypi/simple/ \
+   && pip config set global.trusted-host mirrors.aliyun.com \
+   && python -m pip install --upgrade pip \
+   && pip install pip-tools
+
+# 3. 智能依赖安装（使用缓存加速构建）
+# 优先安装 numpy（pandas 的依赖，有预编译 wheel）
+RUN pip install numpy==1.26.4
+
+# 4. 安装其他依赖
+RUN if [ -f requirements-lock.txt ]; then \
+        echo "检测到锁定文件，使用增量安装..."; \
+        python dependency-diff.py install; \
+    else \
+        echo "首次安装，安装所有依赖..."; \
+        pip install -r requirements.txt; \
+        pip freeze > requirements-lock.txt; \
+    fi
+
+# 4.1 启动关键依赖兜底（避免增量安装遗漏导致运行时报错）
+RUN pip install \
+    psutil==7.1.0 \
+    aiohttp==3.10.11 \
+    prometheus_client==0.20.0 \
+    uvicorn==0.30.6
+
+# 5. 复制源代码
+COPY . ./
+
+ENV ROBOT_PLUT_ACOUNT=robot-plut@spotterio.com
+ENV ROBOT_PLUT_PWD=cThXUnltbnY=
+
+
+
+EXPOSE 8100
+
+CMD ["python", "-m", "apps.master.main"]
